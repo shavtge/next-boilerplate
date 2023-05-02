@@ -28,6 +28,12 @@ Next.js is a production-ready React framework that comes with niceties out of th
 6. Choose which data fetching strategy we want on a per-page basis.
    - data fetching in Next.js 13 differs from earlier versions.
    - All of the components inside the app folder are server components by default.
+7. Partial Rendering
+   - The router avoids unnecessary work by re-using segments that haven't changed (e.g. shared layouts) from the client-side cache.
+   - When navigating between sibling routes (e.g. /dashboard/settings and /dashboard/analytics below), Next.js will only fetch and render the layouts and pages in routes that change. It will not re-fetch or re-render anything above the segments in the subtree. This means that in routes that share a layout, the layout will be preserved when a user navigates between sibling pages.
+     ![Partial Rendering](./img/partial-rendering.webp)
+   - Without partial rendering, each navigation would cause the full page to re-render on the server. Rendering only the segment that’s updating reduces the amount of data transferred and execution time, leading to improved performance.
+   - If created, loading UI is shown from the server while the payload is being fetched.
 
 ## Next.Js Changes made to old repository
 
@@ -67,16 +73,43 @@ Next Features:
 
 - `loading.tsx` file
   - An optional file that you can create within any directory inside of the app folder. It automatically wraps the page inside of a `React suspense boundary`. The component will be shown immediately on the first load as well as when you’re navigating between the sibling routes.
+  - You can pre-render loading indicators such as skeletons and spinners, or a small but meaningful part of future screens such as a cover photo, title, etc.
 - `error.tsx` file
   - An optional file that isolates the error to the smallest possible subsection of the app. Creating the error.tsx file automatically wraps the page inside of a React error boundary. Whenever any error occurs inside the folder where this file is placed, the component will be replaced with the contents of this component.
+  - When the fallback error component is active, layouts above the error boundary maintain their state and remain interactive, and the error component can display functionality to recover from the error
   - Two props are passed to this component: the error prop provides more details about the error, and the reset function resets the error boundary
   - This should be enough to contain the error only to the component and preserve the UI as well as the state of the rest of the application.
+  - The nested component hierarchy has implications for the behavior of error.js files across a nested route. Errors bubble up to the nearest parent error boundary. This means an error.js file will handle errors for all its nested child segments. More or less granular error UI can be achieved by placing error.js files at different levels in the nested folders of a route. An error.js boundary will not handle errors thrown in a layout.js component in the same segment because the error boundary is nested inside that layouts component.
+
+![Error Boundary](./img/error-diagram.webp)
+
 - `layout.tsx` file
   - Used to define a UI that is shared across multiple places. A layout can render another layout or a page inside of it. Whenever a route changes to any component that is within the layout, its state is preserved because the layout component is not unmounted.
+  - On navigation, layouts preserve state, remain interactive, and do not re-render.
 - `template.tsx` file
   - similar to the `layout.tsx` file, but upon navigation, a new instance of the component is mounted and the state is not preserved.
   - Using layouts and templates allows us to take advantage of a concept known as **partial rendering**.
   - While moving between routes inside of the same folder, only the layouts and pages inside of that folder are fetched and rendered:
+- [Route Handlers](https://beta.nextjs.org/docs/routing/route-handlers)
+  - The following HTTP methods are supported: GET, POST, PUT, PATCH, DELETE, HEAD, and OPTIONS. If an unsupported method is called, Next.js will return a 405 Method Not Allowed response.
+  - You can revalidate static data fetches using the next.revalidate option
+  - Next.js allows you to update specific static routes without needing to rebuild your entire site. Revalidation (also known as Incremental Static Regeneration) allows you to retain the benefits of static while scaling to millions of pages.
+  - To revalidate cached data at a specific interval, you can use the next.revalidate option in fetch() to set the cache lifetime of a resource (in seconds).
+
+Note React components defined in special files of a route segment are rendered in a specific hierarchy:
+
+- `layout.tsx`
+- `template.tsx`
+- `error.tsx` (React error boundary)
+- `loading.tsx` (React suspense boundary)
+- `not-found.tsx` (React error boundary)
+- `page.tsx` or nested `layout.tsx`
+
+![Route Segment](./img/file-conventions-component-hierarchy.webp)
+
+In a nested route, the components of a segment will be nested inside the components of its parent segment.
+
+![Nested Route](./img/nested-file-conventions-component-hierarchy.webp)
 
 ## Deployment
 
