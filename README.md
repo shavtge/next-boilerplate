@@ -21,11 +21,13 @@ Next.js is a production-ready React framework that comes with niceties out of th
    - prop `layout='responsive'` will also serve the correct image file size based on the current browser size
    - Note that this requires a node server, so you **cannot do this in a static site.**
 5. static site generation
-   - Can choose how we generate the site (statically, server-side rendered or (combined) dynamic incremental generation)
-   - `export function getStaticProps() {}`
-   - `export function getStaticPaths() {}`
    - Use Incremental Static Regeneration to update existing pages by re-rendering them in the background as traffic comes in.
+   - All of the components inside the app folder are server components by default.
+   - Put `'use client';` at the top of a file to make it a client component.
+   - Need this where we are doing things like `handleClick` because all components in Next 13 by default are server components, therefore for client side interactivity you need to use `use client`.
 6. Choose which data fetching strategy we want on a per-page basis.
+   - data fetching in Next.js 13 differs from earlier versions.
+   - All of the components inside the app folder are server components by default.
 
 ## Next.Js Changes made to old repository
 
@@ -67,12 +69,18 @@ Next Features:
   - An optional file that you can create within any directory inside of the app folder. It automatically wraps the page inside of a `React suspense boundary`. The component will be shown immediately on the first load as well as when you’re navigating between the sibling routes.
 - `error.tsx` file
   - An optional file that isolates the error to the smallest possible subsection of the app. Creating the error.tsx file automatically wraps the page inside of a React error boundary. Whenever any error occurs inside the folder where this file is placed, the component will be replaced with the contents of this component.
+  - Two props are passed to this component: the error prop provides more details about the error, and the reset function resets the error boundary
+  - This should be enough to contain the error only to the component and preserve the UI as well as the state of the rest of the application.
 - `layout.tsx` file
   - Used to define a UI that is shared across multiple places. A layout can render another layout or a page inside of it. Whenever a route changes to any component that is within the layout, its state is preserved because the layout component is not unmounted.
 - `template.tsx` file
   - similar to the `layout.tsx` file, but upon navigation, a new instance of the component is mounted and the state is not preserved.
   - Using layouts and templates allows us to take advantage of a concept known as **partial rendering**.
   - While moving between routes inside of the same folder, only the layouts and pages inside of that folder are fetched and rendered:
+
+## Deployment
+
+[Deploy a Next.js 13 app to AWS with Amplify Hosting](https://aws.amazon.com/blogs/mobile/amplify-next-js-13/#:~:text=On%20the%20Build%20settings%20page,page%20in%20the%20Amplify%20Console.)
 
 ## Commands
 
@@ -90,7 +98,7 @@ Open [http://localhost:3000](http://localhost:3000) with browser to see the resu
 
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-## Resources
+## Resource List
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.

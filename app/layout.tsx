@@ -4,7 +4,7 @@ There must be a file that defines the root layout at the top level of the app di
 */
 
 import './globals.css'
-import { Inter  } from 'next/font/google'
+import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin'] })
 
