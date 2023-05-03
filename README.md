@@ -95,6 +95,57 @@ Next Features:
   - You can revalidate static data fetches using the next.revalidate option
   - Next.js allows you to update specific static routes without needing to rebuild your entire site. Revalidation (also known as Incremental Static Regeneration) allows you to retain the benefits of static while scaling to millions of pages.
   - To revalidate cached data at a specific interval, you can use the next.revalidate option in fetch() to set the cache lifetime of a resource (in seconds).
+- [Server side Components](https://beta.nextjs.org/docs/rendering/server-and-client-components)
+- Data Fetching
+  - Although it's possible to fetch data in Client Components, we recommend fetching data in Server Components unless you have a specific reason for fetching data on the client. Moving data fetching to the server leads to better performance and user experience
+  - data fetching can also happen closer to your data source, reducing latency and improving performance.
+  - Perform multiple data fetches with single round-trip instead of multiple individual requests on the client.
+  - Keep your application more secure by preventing sensitive information, such as access tokens and API keys, from being exposed to the client.
+  - Automatic fetch() Request Deduping
+  - To improve the user experience, you can add a suspense boundary to break up the rendering work and show part of the result as soon as possible:
+
+```javascript
+export default async function Page({ params: { username } }) {
+  // Initiate both requests in parallel
+  const artistData = getArtist(username);
+  const albumData = getArtistAlbums(username);
+
+  // Wait for the artist's promise to resolve first
+  const artist = await artistData;
+
+  return (
+    <>
+      <h1>{artist.name}</h1>
+      {/* Send the artist information first,
+      and wrap albums in a suspense boundary */}
+      <Suspense fallback={<div>Loading...</div>}>
+        <Albums promise={albumData} />
+      </Suspense>
+    </>
+  );
+}
+
+// Albums Component
+async function Albums({ promise }) {
+  // Wait for the albums promise to resolve
+  const albums = await promise;
+
+  return (
+    <ul>
+      {albums.map((album) => (
+        <li key={album.id}>{album.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+      move data fetching lower in the component tree to only block rendering for the parts of the page that need it. For example, moving data fetching to a specific component rather than fetching it at the root layout.
+
+- Streaming and Suspense
+  - Streaming and Suspense are new React features that allow you to progressively render and incrementally stream rendered units of the UI to the client.
+    ![Streaming and Suspense](./img/server-rendering-with-streaming.webp)
+- ASDF
 
 Note React components defined in special files of a route segment are rendered in a specific hierarchy:
 
@@ -134,5 +185,13 @@ This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-opti
 ## Resource List
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Next.js β Documentation](https://beta.nextjs.org/docs/routing/intercepting-routes) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 - [Next.js GitHub repository](https://github.com/vercel/next.js/)
+
+## Links
+
+- Precedent
+  - https://vercel.com/templates/next.js/precedent
+  - https://github.com/steven-tey/precedent
+  - https://www.radix-ui.com/
